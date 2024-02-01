@@ -70,6 +70,7 @@ type Model struct {
 	header      header.Model
 	compact     bool
 	currentPage nomad.Page
+	previousPage nomad.Page
 	pageModels  map[nomad.Page]*page.Model
 
 	inJobsMode   bool
@@ -170,6 +171,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case nomad.PageLoadedMsg:
+
 		if msg.Page == m.currentPage {
 			m.getCurrentPageModel().SetHeader(msg.TableHeader)
 			m.getCurrentPageModel().SetAllPageRows(msg.AllPageRows)
@@ -192,7 +194,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.getCurrentPageModel().SetViewportSelectionEnabled(false)
 			}
 
+			if m.previousPage != m.currentPage {
+				m.getCurrentPageModel().SetViewportSelectionToTop()
+			}
+
 			switch m.currentPage {
+			//case nomad.TaskAdminConfirmPage:
+			//case nomad.AllocAdminConfirmPage:
+				//if (m.previousPage != nomad.AllocAdminConfirmPage) || (m.previousPage != nomad.TaskAdminConfirmPage) {
+
 			case nomad.JobEventsPage, nomad.AllEventsPage:
 				m.eventsStream = msg.EventsStream
 				cmds = append(cmds, nomad.ReadEventsStreamNextMessage(m.eventsStream, m.config.Event.JQQuery))
@@ -449,6 +459,7 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 
 				case nomad.TaskAdminPage:
 					m.adminAction = nomad.KeyToAdminAction(selectedPageRow.Key)
+
 				case nomad.TaskAdminConfirmPage:
 					if selectedPageRow.Key == constants.ConfirmationKey {
 						cmds = append(cmds, nomad.GetCmdForTaskAdminAction(
@@ -486,6 +497,8 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 
 				nextPage := m.currentPage.Forward(m.inJobsMode)
 				if nextPage != m.currentPage {
+					//m.previousPage = m.currentPage
+					m.setPreviousPage()
 					m.setPage(nextPage)
 					cmds = append(cmds, m.getCurrentPageCmd())
 					return tea.Batch(cmds...)
@@ -680,6 +693,11 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) tea.Cmd {
 	return nil
 }
 
+
+func (m *Model) setPreviousPage() {
+	m.previousPage = m.currentPage
+}
+
 func (m *Model) setPage(page nomad.Page) {
 	m.getCurrentPageModel().HideToast()
 	m.currentPage = page
@@ -793,6 +811,7 @@ func (m Model) getCurrentPageCmd() tea.Cmd {
 					Row: nomad.GetAllocAdminText(action, m.alloc.Name, m.alloc.ID),
 				})
 			}
+
 			return nomad.PageLoadedMsg{
 				Page:        nomad.AllocAdminPage,
 				TableHeader: []string{"Available Admin Actions"},

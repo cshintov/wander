@@ -513,6 +513,10 @@ func (m *Model) fixViewForSelection() {
 	}
 }
 
+func (m *Model) ResetSelection() {
+	m.selectedContentIdx = 0
+}
+
 func (m *Model) fixSelection() {
 	if !m.selectionEnabled {
 		return

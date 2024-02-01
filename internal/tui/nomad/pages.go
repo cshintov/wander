@@ -160,12 +160,12 @@ func GetAllPageConfigs(width, height int, compactTables bool) map[Page]page.Conf
 		},
 		TaskAdminConfirmPage: {
 			Width: width, Height: height,
-			LoadingString:    TaskAdminConfirmPage.LoadingString(),
+			LoadingString:    AllocAdminConfirmPage.LoadingString(),
 			SelectionEnabled: true, WrapText: false, RequestInput: false,
 		},
 		AllocAdminPage: {
 			Width: width, Height: height,
-			LoadingString:    TaskAdminPage.LoadingString(),
+			LoadingString:    AllocAdminPage.LoadingString(),
 			SelectionEnabled: true, WrapText: false, RequestInput: false,
 		},
 		AllocAdminConfirmPage: {
@@ -235,6 +235,8 @@ func (p Page) doesUpdate() bool {
 		AllocEventPage,   // doesn't load
 		AllEventsPage,    // constant connection, streams data
 		AllEventPage,     // doesn't load
+		AllocAdminConfirmPage, // doesn't load
+		TaskAdminConfirmPage, // doesn't load
 	}
 	for _, noUpdatePage := range noUpdatePages {
 		if noUpdatePage == p {
@@ -383,7 +385,7 @@ func (p Page) Backward(inJobsMode bool) Page {
 }
 
 func allocEventFilterPrefix(allocName, allocID string) string {
-	return fmt.Sprintf("%s %s", style.Bold.Render(allocName), formatter.ShortID(allocID))
+	return fmt.Sprintf("%s (%s)", style.Bold.Render(allocName), formatter.ShortID(allocID))
 }
 
 func taskFilterPrefix(taskName, allocName string) string {
@@ -442,15 +444,13 @@ func (p Page) GetFilterPrefix(namespace, jobID, taskName, allocName, allocID str
 
 	case AllocAdminPage:
 		return fmt.Sprintf(
-			"Admin Actions for Alloc %s (%s)",
-			allocEventFilterPrefix(allocName, allocID),
-			formatter.ShortID(allocID))
+			"Admin Actions for Alloc %s",
+			allocEventFilterPrefix(allocName, allocID))
 
 	case AllocAdminConfirmPage:
 		return fmt.Sprintf(
-			"Confirm Admin Action for Alloc %s (%s)",
-			allocEventFilterPrefix(allocName, allocID),
-			formatter.ShortID(allocID))
+			"Confirm Admin Action for Alloc %s",
+			allocEventFilterPrefix(allocName, allocID))
 
 	case TaskAdminPage:
 		return fmt.Sprintf("Admin Actions for Task %s (%s)", taskFilterPrefix(taskName, allocName), formatter.ShortID(allocID))
@@ -474,6 +474,7 @@ type LogsStream struct {
 
 type PageLoadedMsg struct {
 	Page         Page
+	PreviousPage Page
 	TableHeader  []string
 	AllPageRows  []page.Row
 	EventsStream EventsStream

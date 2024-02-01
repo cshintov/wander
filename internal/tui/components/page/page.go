@@ -225,6 +225,10 @@ func (m *Model) SetLoading(isLoading bool) {
 	m.loading = isLoading
 }
 
+func (m *Model) ResetSelection() {
+	m.SetViewportSelectionToTop()
+}
+
 func (m *Model) SetAllPageRows(allPageRows []Row) {
 	m.pageData.AllRows = allPageRows
 	m.updateViewport()
@@ -232,6 +236,10 @@ func (m *Model) SetAllPageRows(allPageRows []Row) {
 
 func (m *Model) SetFilterPrefix(prefix string) {
 	m.filter.SetPrefix(prefix)
+}
+
+func (m *Model) SetViewportSelectionToTop() {
+	m.viewport.SetSelectedContentIdx(0)
 }
 
 func (m *Model) SetViewportSelectionToBottom() {
