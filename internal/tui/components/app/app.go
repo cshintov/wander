@@ -121,6 +121,7 @@ func InitialModel(c Config) Model {
 		config:      c,
 		header:      initialHeader,
 		currentPage: firstPage,
+		previousPage: firstPage,
 		updateID:    nextUpdateID(),
 		inJobsMode:  !c.StartAllTasksView,
 	}
@@ -178,9 +179,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentPageLoading() {
 				m.getCurrentPageModel().SetViewportXOffset(0)
 			}
-			if m.getCurrentPageModel().FilterWithContext {
-				m.getCurrentPageModel().ResetContextFilter()
-			}
+
 			m.getCurrentPageModel().SetLoading(false)
 
 			if m.currentPage.CanBeFirstPage() && len(msg.AllPageRows) == 0 {
@@ -194,14 +193,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.getCurrentPageModel().SetViewportSelectionEnabled(false)
 			}
 
+			// if it's a fresh load then reset selection to top
 			if m.previousPage != m.currentPage {
 				m.getCurrentPageModel().SetViewportSelectionToTop()
 			}
 
 			switch m.currentPage {
-			//case nomad.TaskAdminConfirmPage:
-			//case nomad.AllocAdminConfirmPage:
-				//if (m.previousPage != nomad.AllocAdminConfirmPage) || (m.previousPage != nomad.TaskAdminConfirmPage) {
 
 			case nomad.JobEventsPage, nomad.AllEventsPage:
 				m.eventsStream = msg.EventsStream
